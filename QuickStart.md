@@ -1,7 +1,7 @@
 #### 一、新建编排流程
 >**假如要实现一个如下的编排流程，1、2并行执行完再执行3**
 >
->![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfdGnA.png)
+>![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHACPs.png)
 ##### 1. 实现IOperator接口，开发业务逻辑
 ```
 //IOperator接口定义
@@ -173,7 +173,7 @@ afterOp(ICallable callback);//每个OP执行后的回调
 ```
 ##### 9. 线程模型
 
-![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfw056.png) ![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfwgrd.png)
+![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmp3d.png) ![vfdGnA.png](https://s1.ax1x.com/2022/09/07/vHmJ5F.png)
 
 如上图有两种线程模型：阻塞模式、非阻塞模式
 阻塞模式：主线程等待编排流程的执行结束（正常结束、超时、异常等）
@@ -185,7 +185,7 @@ engine.runWithCallback(9000, dagCallback, "1"); //非阻塞模式，dagCallback�
 ```
 ##### 10. 依赖关系类型
 
-![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfwfat.png)
+![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmCjI.png)
 
    * 强依赖，节点之间默认的依赖关系，只有前面的节点执行结束才可以执行后续的节点，编排流程的执行时间取决于所有节点中执行时间最长的
    * 弱依赖，不同于强依赖的执行逻辑，只要节点依赖的其它节点中有一个执行结束就可以执行当前节点，编排流程的执行时间取决于所有节点中执行时间最短的
@@ -200,7 +200,7 @@ depend(String wrapperId, boolean isMust); //当前节点依赖的其它节点，
 ```
 ##### 11. 准入条件判断
 
-![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vf0tW8.png)
+![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmFDP.png)
 
 类似于节点的准入条件；在某些场景下，需要根据依赖节点的执行结果动态的判断是否执行当前节点，比如在推荐的多路召回阶段，召回源可以设置多个，并发召回时如果召回的结果已满足召回策略(比如召回条数不少于100条)，可以不等待其它召回结果的返回而直接执行后续的逻辑；如下图，4 依赖 1、2、3 三个节点，如果节点1、2、3中有任意两个执行完就可以执行节点4，就可以使用条件判断；通过使用条件判断，可以有效的提升编排的执行效率；实现的逻辑是1、2、3中任意一个节点执行完后都执行节点4的前置判断，看是否满足准入条件，如果满足就执行，否则等待其它节点执行完
 
@@ -233,7 +233,7 @@ private static class Wrapper4Condition implements ICondition {
 ```
 ##### 12. 分支选择
 
-![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vf0IT1.png)
+![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmVUS.png)
 
 根据节点的计算结果动态的选择要执行的子节点，如上图，默认情况下节点1执行完后会并行执行节点2、3、4；如果想根据节点1的结果，判断后续要执行的节点，可以使用分支选择的功能
 
@@ -333,7 +333,7 @@ private OperatorListener getListener() {
 ```
 ##### 14. 节点组
 
-![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfBk6g.png)
+![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHm1bV.png)
 
 OP节点组，将多个节点抽象成一个组，可以简化节点依赖的管理，尤其是当整个DAG中节点比较多时，根据依赖关系划分成多个组，每个组内的节点可以单独管理，比如系统中涉及多个模块，每个模块又有多个OP节点
 

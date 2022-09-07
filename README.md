@@ -32,14 +32,14 @@
    
 4. **核心能力**
 
-    ![vf33Of.png](https://s1.ax1x.com/2022/08/29/vfY9HK.png)
+    ![vf33Of.png](https://s1.ax1x.com/2022/09/06/v77QmT.png)
 5. **项目目录**
    * taskflow-core: taskflow 引擎核心能力
    * taskflow-example: taskflow 接入实例，提供测试用例
 
 6. **名词解释**
 
-    ![vf83C9.png](https://s1.ax1x.com/2022/08/29/vf8r8A.png)
+    ![vf83C9.png](https://s1.ax1x.com/2022/09/06/v774HS.png)
    * **Operator**：以下简称OP或组件，OP是DAG图中具体的节点，如上图1、2、3等节点；实现IOperator接口并开发相应的业务逻辑就可以完成一个OP的定义
    * **OperatorWrapper**：以下简称wrapper，OP对应的包装类，在wrapper中可以定义节点的名称、节点与节点之间的关系、节点参数的来源等；引入wrapper后可以将OP进行解耦，根据不同的业务场景需要对OP进行组合使用时，通过wrapper描述OP之间的依赖关系，串联成一个编排流程
    * **DagEngine**：DAG执行引擎，根据指定的初始节点（如上图的1、2、3），执行相应的编排流程；DAG执行引擎在初始化时可以指定使用不同的线程池，对业务进行隔离；可以设置整个执行过程的超时时间，达到超时时间阈值时，会结束编排流程的执行，没有执行到的节点不再执行同时执行中的节点也会被中断
@@ -72,7 +72,7 @@
 
 1、2、3并行执行
 ##### 3. 串并行相互依赖
-![vf83C9.png](https://s1.ax1x.com/2022/08/31/v4Qgh9.png)
+![vf83C9.png](https://s1.ax1x.com/2022/09/07/vHJ1Nn.png)
 
 1执行完后，2、3再并行执行 
 ##### 4. 弱依赖
@@ -84,24 +84,24 @@
 
 4弱依赖1、2、3节点，每个节点在执行完后都可以执行4的准入条件，判断当前是否已经满足执行节点4的条件，若满足则直接执行
 ##### 6. 分支选择
-![vf83C9.png](https://s1.ax1x.com/2022/08/29/vfJsnP.png)
+![vf83C9.png](https://s1.ax1x.com/2022/09/06/v7Hn4H.png)
 
 根据节点的执行结果选择要执行的子节点，如上图所示，最终的执行路径可能是：1->3->6->9 
 ##### 7. 复杂场景
-![vf83C9.png](https://s1.ax1x.com/2022/08/29/vfJUte.png)
+![vf83C9.png](https://s1.ax1x.com/2022/09/06/v7HFjx.png)
 
 流程复杂，没有严格的串行、并行过程 
 
 #### 四、引擎执行逻辑
 >DAG图中的节点通过入度(indegree)来表示依赖的节点个数，只有当节点的入度为0时，当前节点才可以执行
 
-![vf83C9.png](https://s1.ax1x.com/2022/08/31/v4l0Cd.png)
+![vf83C9.png](https://s1.ax1x.com/2022/09/06/v7HzsP.png)
 
 >DAG图中的弱依赖不计入节点的入度，如下图中的节点4初始入度等于0，实际的执行流程可能存在三种情况
 * 1 -> (2、3）-> 4 -> 5
 * 1 -> 2 -> 4 -> 5
 * 1 -> 3 -> 4 -> 5
 
-![vf83C9.png](https://s1.ax1x.com/2022/08/30/v49put.png)
+![vf83C9.png](https://s1.ax1x.com/2022/09/06/v7Hg54.png)
 #### 五、快速开始
 [快速开始](./QuickStart.md)
