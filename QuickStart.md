@@ -65,13 +65,11 @@ OperatorWrapper<Integer, Integer> wrapper1 = new OperatorWrapper<Integer, Intege
                 .id("1")
                 .engine(engine)
                 .operator(operator1)
-                .addParam(param)
                 ;
 OperatorWrapper<Integer, Integer> wrapper2 = new OperatorWrapper<Integer, Integer>()
                 .id("2")
                 .engine(engine)
                 .operator(operator2)
-                .addParam(param)
                 ;
 OperatorWrapper<Integer, Integer> wrapper3 = new OperatorWrapper<Integer, Integer>()
                 .id("3")

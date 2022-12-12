@@ -1,14 +1,19 @@
-package org.taskflow.example.param;
+package org.taskflow.example.param.demo;
 
 import org.junit.Test;
+import org.taskflow.common.util.gson.GsonUtil;
+import org.taskflow.config.op.OpConfig;
 import org.taskflow.core.DagEngine;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.taskflow.example.param.entity.OpConfigEntity;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * 节点参数来源
+ * 不设置op参数，默认使用请求上下文
+ * 执行顺序：1 -> 2 -> 3
  * Created by ytyht226 on 2022/6/23.
  */
 @SuppressWarnings("all")
@@ -20,29 +25,29 @@ public class ParamTest {
 
     @Test
     public void test() {
-        int param = 5;
-        DagEngine engine = new DagEngine(executor);
-        OperatorWrapper<Integer, Integer> wrapper1 = new OperatorWrapper<Integer, Integer>()
+        //请求上下文
+        OpConfig opConfig = OpConfigEntity.getOpConfig();
+        System.out.println("before: " + GsonUtil.prettyPrint(opConfig));
+        DagEngine engine = new DagEngine(opConfig, executor);
+        OperatorWrapper wrapper1 = new OperatorWrapper<OpConfig, OpConfig>()
                 .id("1")
                 .engine(engine)
                 .operator(operator1)
                 .next("2")
-                .addParam(param)    //参数来源是外部变量
                 ;
-        OperatorWrapper<Integer, Integer> wrapper2 = new OperatorWrapper<Integer, Integer>()
+        OperatorWrapper wrapper2 = new OperatorWrapper<OpConfig, OpConfig>()
                 .id("2")
                 .engine(engine)
                 .operator(operator2)
                 .next("3")
-                .addParamFromWrapperId("1")    //参数来源是其它节点的结果
                 ;
-        OperatorWrapper<Integer, Integer> wrapper3 = new OperatorWrapper<Integer, Integer>()
+        OperatorWrapper wrapper3 = new OperatorWrapper<OpConfig, OpConfig>()
                 .id("3")
                 .engine(engine)
                 .operator(operator3)
-                .addParamFromWrapperId("2")    //参数来源是其它节点的结果
                 ;
 
         engine.runAndWait(3000);
+        System.out.println("after: " + GsonUtil.prettyPrint(opConfig));
     }
 }

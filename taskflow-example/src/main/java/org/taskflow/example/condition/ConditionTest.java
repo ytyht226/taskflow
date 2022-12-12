@@ -43,7 +43,7 @@ public class ConditionTest {
                 .id("1")
                 .engine(engine)
                 .operator(operator1)
-                .addParam(param)
+                .context(param)
                 ;
         OperatorWrapper<Integer, Integer> wrapper2 = new OperatorWrapper<Integer, Integer>()
                 .id("2")

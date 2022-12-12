@@ -11,7 +11,9 @@ import org.taskflow.core.enums.WrapperState;
 import org.taskflow.core.event.OperatorEventEnum;
 import org.taskflow.core.exception.TaskFlowException;
 import org.taskflow.core.listener.OperatorListener;
+import org.taskflow.core.operator.OperatorResult;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.taskflow.common.constant.DagConstant;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,6 +97,11 @@ public class DagEngine {
 
     public DagEngine(ExecutorService executor) {
         this.executor = TtlExecutors.getTtlExecutorService(executor);
+    }
+
+    public DagEngine(Object context, ExecutorService executor) {
+        this.executor = TtlExecutors.getTtlExecutorService(executor);
+        dagContext.putOperatorResult(DagConstant.REQUEST_CONTEXT_ID, new OperatorResult<>(context, ResultState.SUCCESS));
     }
 
     /**
@@ -610,9 +617,10 @@ public class DagEngine {
         //解析OP执行时需要透传的参数
         {
             List list = null;
-            //参数来源是外部变量
-            if (null != wrapper.getParamList()) {
-                list = wrapper.getParamList();
+            //参数来源是外部变量(请求上下文)
+            if (null != wrapper.getContext()) {
+                list = new ArrayList();
+                list.add(wrapper.getContext());
             }
             //参数来源是其它OP结果
             if (null != wrapper.getParamFromList()) {
@@ -628,6 +636,12 @@ public class DagEngine {
                 param = list.get(0);
             } else {
                 param = list;
+            }
+        }
+        //没有指定OP参数来源时，默认使用请求上下文（如果有）
+        if (param == null) {
+            if (dagContext.getOperatorResult(DagConstant.REQUEST_CONTEXT_ID) != null) {
+                param = dagContext.getOperatorResult(DagConstant.REQUEST_CONTEXT_ID).getResult();
             }
         }
         return param;

@@ -8,6 +8,7 @@ import org.taskflow.core.enums.WrapperState;
 import org.taskflow.core.event.OperatorEventEnum;
 import org.taskflow.core.exception.TaskFlowException;
 import org.taskflow.core.listener.OperatorListener;
+import org.taskflow.core.operator.DefaultParamParseOperator;
 import org.taskflow.core.operator.IOperator;
 import org.taskflow.core.operator.OperatorResult;
 
@@ -20,19 +21,32 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class OperatorWrapper<P, V> {
     /**
+     * OP入参解析器（json-path 方式解析）
+     */
+    private static final DefaultParamParseOperator DEFAULT_PARAM_PARSE_OPERATOR = new DefaultParamParseOperator();
+    /**
      * 该wrapper的id，如果不指定，默认是Operator的全限定名
      */
     private String id;
     /**
-     * 参数来源是外部变量，paramList 和 paramFromList 都设置时，paramList参数在前面
+     * 参数来源是请求上下文，context 和 paramFromList都设置时，context 参数在前面
      * 集合中的元素与参数顺序一致
      */
-    private List<Object> paramList;
+    private Object context;
     /**
      * 参数来源是依赖的OP的结果
      * 集合中的元素与参数顺序一致
      */
     private List<String> paramFromList;
+    /**
+     * OP节点配置
+     * @see org.taskflow.config.op.OpConfig
+     */
+    private String opConfig;
+    /**
+     * 通过 json-path 方式解析参数时要执行的目标对象（具体执行的方法通过 opConfig 定义）
+     */
+    private Object proxyObj;
     /**
      * 该wrapper代理的目标OP
      */
@@ -222,15 +236,8 @@ public class OperatorWrapper<P, V> {
         return this;
     }
 
-
-    public OperatorWrapper<P, V> addParam(Object... params) {
-        if (params == null) {
-            return this;
-        }
-        if (paramList == null || paramList.size() == 0) {
-            paramList = new ArrayList<>();
-        }
-        paramList.addAll(Arrays.asList(params));
+    public OperatorWrapper<P, V> context(Object context) {
+        this.context = context;
         return this;
     }
 
@@ -331,8 +338,8 @@ public class OperatorWrapper<P, V> {
         this.engine.getWrapperMap().put(this.getId(), this);
     }
 
-    public List<Object> getParamList() {
-        return paramList;
+    public Object getContext() {
+        return context;
     }
 
     public void setId(String id) {
@@ -381,5 +388,30 @@ public class OperatorWrapper<P, V> {
 
     public ICallable getAfter() {
         return after;
+    }
+
+    public OperatorWrapper<P, V> proxyObj(Object proxyObj) {
+        this.proxyObj = proxyObj;
+        return this;
+    }
+
+    @SuppressWarnings("all")
+    public OperatorWrapper<P, V> opConfig(String opConfig) {
+        return this.opConfig(opConfig, (IOperator<P, V>) DEFAULT_PARAM_PARSE_OPERATOR);
+    }
+
+    public OperatorWrapper<P, V> opConfig(String opConfig, IOperator<P, V> operator) {
+        this.opConfig = opConfig;
+        this.operator = operator;
+        this.context(this);
+        return this;
+    }
+
+    public String getOpConfig() {
+        return opConfig;
+    }
+
+    public Object getProxyObj() {
+        return proxyObj;
     }
 }

@@ -89,8 +89,8 @@ public class OperatorWrapperGroup extends OperatorWrapper{
         return this;
     }
 
-    public OperatorWrapper addParam(Object... params) {
-        groupBegin.addParam(params);
+    public OperatorWrapper context(Object context) {
+        groupBegin.context(context);
         return this;
     }
     /**
@@ -129,7 +129,7 @@ public class OperatorWrapperGroup extends OperatorWrapper{
 
         for (String wrapperId : nextWrapperIds) {
             OperatorWrapper<?, ?> wrapper = engine.getWrapperMap().get(wrapperId);
-            if (wrapper.getParamFromList() == null && wrapper.getParamList() == null) {
+            if (wrapper.getParamFromList() == null && wrapper.getContext() == null) {
                 try {
                     wrapper.getOperator().getClass().getDeclaredMethod("execute", Void.class);
                 } catch (NoSuchMethodException e) {

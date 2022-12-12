@@ -11,6 +11,8 @@
     <modules>
         <module>taskflow-core</module>
         <module>taskflow-example</module>
+        <module>taskflow-common</module>
+        <module>taskflow-config</module>
     </modules>
 
 </project>
