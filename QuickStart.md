@@ -148,11 +148,8 @@ addParamFromWrapperId(String ... fromWrapperIds)//当前节点OP的入参是其�
 ```
 ##### 5. OP入参来源
 
-指定OP参数来源，主要有如下两种方式:
-```
-addParam(Object ... params)//参数来源是外部变量，可以有多个
-addParamFromWrapperId(String ... fromWrapperIds)//参数来源是其它节点的返回值，可以有多个
-```
+具体使用方法见：[指定参数来源](./ParamSource.md)
+
 ##### 6. 全局上下文
 
 DAG引擎执行过程中，每个OP节点的计算结果都会保存到上下文(DagContext)中，使用上下文获取OP结果的方式如下:
