@@ -35,6 +35,8 @@
     ![vf33Of.png](https://s1.ax1x.com/2022/09/06/v77QmT.png)
 5. **项目目录**
    * taskflow-core: taskflow 引擎核心能力
+   * taskflow-config: 配置OP参数来源
+   * taskflow-common: 引擎使用的工具包
    * taskflow-example: taskflow 接入实例，提供测试用例
 
 6. **名词解释**
