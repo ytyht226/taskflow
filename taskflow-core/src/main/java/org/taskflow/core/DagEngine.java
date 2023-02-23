@@ -418,7 +418,7 @@ public class DagEngine {
                 //将OP的执行结果保存到上下文
                 DagContextHolder.putOperatorResult(wrapper.getId(), wrapper.getOperatorResult());
                 //OP执行后的回调
-                if (wrapper.getOperatorResult().getEx() != null) {
+                if (wrapper.getOperatorResult().getEx() == null) {
                     wrapper.getOperator().onSuccess(wrapper.getParam(), wrapper.getOperatorResult());
                 } else {
                     wrapper.getOperator().onError(wrapper.getParam(), wrapper.getOperatorResult());
