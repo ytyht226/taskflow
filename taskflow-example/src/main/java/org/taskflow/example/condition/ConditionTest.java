@@ -6,14 +6,11 @@ import org.taskflow.core.DagEngine;
 import org.taskflow.core.callback.ICondition;
 import org.taskflow.core.enums.ResultState;
 import org.taskflow.core.operator.OperatorResult;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 准入条件判断
@@ -21,12 +18,12 @@ import java.util.concurrent.Executors;
  */
 @SuppressWarnings("all")
 public class ConditionTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
     Operator4 operator4 = new Operator4();
     Operator5 operator5 = new Operator5();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     @Test
     public void test100() {
@@ -75,7 +72,7 @@ public class ConditionTest {
                 ;
 
         long begin = System.currentTimeMillis();
-        engine.runAndWait(900000);
+        engine.runAndWait(900_000);
         long end = System.currentTimeMillis();
         System.out.println("result: " + wrapper5.getOperatorResult().getResult() + ", cost: " + (end - begin));
         if (engine.getEx() != null) {

@@ -5,12 +5,12 @@ import org.taskflow.common.util.gson.GsonUtil;
 import org.taskflow.config.op.OpConfig;
 import org.taskflow.config.op.param.OpParamConfig;
 import org.taskflow.core.DagEngine;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
 import org.taskflow.example.param.entity.OpConfigEntity;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 节点参数来源
@@ -20,11 +20,11 @@ import java.util.concurrent.Executors;
  */
 @SuppressWarnings("all")
 public class ParamTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
     ParamOperator4 operator4 = new ParamOperator4();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     @Test
     public void test() {
@@ -124,7 +124,7 @@ public class ParamTest {
                 .proxyObj(operator4)
                 ;
 
-        engine.runAndWait(30000);
+        engine.runAndWait(300_000);
         System.out.println(GsonUtil.prettyPrint(wrapper4.getOperatorResult().getResult()));
         if (engine.getEx() != null) {
             engine.getEx().printStackTrace();

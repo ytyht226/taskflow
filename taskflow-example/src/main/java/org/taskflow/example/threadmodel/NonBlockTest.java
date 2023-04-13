@@ -1,20 +1,19 @@
 package org.taskflow.example.threadmodel;
 
-import org.junit.Test;
 import org.taskflow.core.DagEngine;
-import org.taskflow.core.callback.IDagCallback;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 线程模型--非阻塞模式
  * Created by ytyht226 on 2022/6/23.
  */
 public class NonBlockTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     private final Operator1 operator1 = new Operator1();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     @Test
     public void test() {
@@ -25,7 +24,7 @@ public class NonBlockTest {
                 .operator(operator1)
                 ;
 
-        engine.runWithCallback(9000, this::engineCallback);
+        engine.runWithCallback(900_000, this::engineCallback);
 
         System.out.println("main end...");
 

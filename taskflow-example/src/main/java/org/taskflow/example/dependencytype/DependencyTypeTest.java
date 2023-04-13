@@ -1,11 +1,11 @@
 package org.taskflow.example.dependencytype;
 
-import org.junit.Test;
 import org.taskflow.core.DagEngine;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 节点依赖类型 强依赖、弱依赖
@@ -13,11 +13,11 @@ import java.util.concurrent.Executors;
  */
 @SuppressWarnings("all")
 public class DependencyTypeTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
     Operator4 operator4 = new Operator4();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     /**
      * 强依赖
@@ -51,6 +51,9 @@ public class DependencyTypeTest {
                 ;
 
         engine.runAndWait(3000);
+        if (engine.getEx() != null) {
+            engine.getEx().printStackTrace();
+        }
     }
 
     /**
@@ -86,5 +89,9 @@ public class DependencyTypeTest {
                 ;
 
         engine.runAndWait(3000);
+
+        if (engine.getEx() != null) {
+            engine.getEx().printStackTrace();
+        }
     }
 }

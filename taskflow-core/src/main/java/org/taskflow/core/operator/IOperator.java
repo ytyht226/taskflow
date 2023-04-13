@@ -1,7 +1,5 @@
 package org.taskflow.core.operator;
 
-import org.taskflow.core.wrapper.OperatorWrapper;
-
 /**
  * Operator接口
  * Created by ytyht226 on 2022/3/16.

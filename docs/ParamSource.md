@@ -1,4 +1,4 @@
->以下所有例子的代码示例请参考 [taskflow-example](./taskflow-example)
+>以下所有例子的代码示例请参考 [taskflow-example](../taskflow-example)
 
 ### 1. 使用请求上下文
 详细代码示例：org.taskflow.example.param.demo

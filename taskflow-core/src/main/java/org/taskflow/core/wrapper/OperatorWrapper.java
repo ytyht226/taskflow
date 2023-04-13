@@ -25,7 +25,7 @@ public class OperatorWrapper<P, V> {
      */
     private static final DefaultParamParseOperator DEFAULT_PARAM_PARSE_OPERATOR = new DefaultParamParseOperator();
     /**
-     * 该wrapper的id，如果不指定，默认是Operator的全限定名
+     * 该wrapper的id，默认是Operator的全限定名
      */
     private String id;
     /**
@@ -34,7 +34,7 @@ public class OperatorWrapper<P, V> {
      */
     private Object context;
     /**
-     * 参数来源是依赖的OP的结果
+     * 参数来源是依赖的OP
      * 集合中的元素与参数顺序一致
      */
     private List<String> paramFromList;
@@ -48,27 +48,27 @@ public class OperatorWrapper<P, V> {
      */
     private Object proxyObj;
     /**
-     * 该wrapper代理的目标OP
+     * 该wrapper具体要执行的目标OP
      */
     private IOperator<P, V> operator;
     /**
-     * 该OP的后继OP集合
+     * 依赖该OP的后续OP集合
      */
     private Set<OperatorWrapper<?, ?>> nextWrappers;
     /**
-     * 该OP的后继OP集合id
+     * 依赖该OP的后续OP集合id
      */
-    private Map<String /*nextWrapperId*/, Boolean /*后继节点是否强依赖该节点*/> nextWrapperIdMap;
+    private Map<String /*nextWrapperId*/, Boolean /*后续节点是否强依赖该节点*/> nextWrapperIdMap;
     /**
-     * 该OP依赖的前驱OP集合
+     * 该OP依赖的OP集合
      */
     private Set<OperatorWrapper<?, ?>> dependWrappers;
     /**
-     * 该OP依赖的前驱OP集合id
+     * 该OP依赖的OP集合id
      */
-    private Map<String /*dependWrapperId*/, Boolean /*当前节点是否强依赖前驱节点*/> dependWrapperIdMap;
+    private Map<String /*dependWrapperId*/, Boolean /*当前节点是否强依赖前置节点*/> dependWrapperIdMap;
     /**
-     * 强依赖于该OP的后继 wrapper 集合，是 nextWrappers 的子集
+     * 强依赖于该OP的后续wrapper集合，是nextWrappers的子集
      */
     private Set<OperatorWrapper<?, ?>> selfIsMustSet;
     /**
@@ -97,7 +97,7 @@ public class OperatorWrapper<P, V> {
      */
     private boolean init;
     /**
-     * OP执行时动态解析的参数，合并 paramList、paramFromList 之后的结果
+     * OP执行时动态解析的参数，调用回调接口时使用
      */
     private P param;
     /**
@@ -107,9 +107,13 @@ public class OperatorWrapper<P, V> {
      */
     private ICondition condition;
     /**
-     * 分支选择，根据当前节点的结果判断要执行的后继节点
+     * 分支选择，根据当前节点的结果判断要执行的分支
      */
-    private IChoose choose;
+    private IChoose chooseBranch;
+    /**
+     * 节点选择，根据当前节点的结果判断要执行的后继节点(组)
+     */
+    private IChoose chooseOp;
     /**
      * OP执行过程的监听器
      */
@@ -122,6 +126,10 @@ public class OperatorWrapper<P, V> {
      * OP执行后的回调
      */
     private ICallable after;
+    /**
+     * 当前节点所属的节点组
+     */
+    private OperatorWrapperGroup group;
 
     public OperatorWrapper(){
 
@@ -134,7 +142,7 @@ public class OperatorWrapper<P, V> {
         this.operator = operator;
     }
 
-    public OperatorWrapper<P, V> addParamFromWrapperId(String... fromWrapperIds) {
+    public OperatorWrapper<P, V> addParamFromWrapperId(String ... fromWrapperIds) {
         if (fromWrapperIds == null) {
             return this;
         }
@@ -189,12 +197,22 @@ public class OperatorWrapper<P, V> {
         return this;
     }
 
-    public OperatorWrapper<P, V> chooseNext(IChoose choose) {
-        this.choose = choose;
+    public OperatorWrapper<P, V> group(OperatorWrapperGroup group) {
+        this.group = group;
         return this;
     }
 
-    public OperatorWrapper<P, V> depend(String... wrapperIds) {
+    public OperatorWrapper<P, V> chooseBranch(IChoose choose) {
+        this.chooseBranch = choose;
+        return this;
+    }
+
+    public OperatorWrapper<P, V> chooseOp(IChoose choose) {
+        this.chooseOp = choose;
+        return this;
+    }
+
+    public OperatorWrapper<P, V> depend(String ... wrapperIds) {
         if (wrapperIds == null) {
             return this;
         }
@@ -215,7 +233,7 @@ public class OperatorWrapper<P, V> {
         return this;
     }
 
-    public OperatorWrapper<P, V> next(String... wrapperIds) {
+    public OperatorWrapper<P, V> next(String ... wrapperIds) {
         if (wrapperIds == null) {
             return this;
         }
@@ -235,6 +253,7 @@ public class OperatorWrapper<P, V> {
         nextWrapperIdMap.put(wrapperId, selfIsMust);
         return this;
     }
+
 
     public OperatorWrapper<P, V> context(Object context) {
         this.context = context;
@@ -378,8 +397,8 @@ public class OperatorWrapper<P, V> {
         return engine;
     }
 
-    public IChoose getChoose() {
-        return choose;
+    public IChoose getChooseBranch() {
+        return chooseBranch;
     }
 
     public ICallable getBefore() {
@@ -413,5 +432,13 @@ public class OperatorWrapper<P, V> {
 
     public Object getProxyObj() {
         return proxyObj;
+    }
+
+    public IChoose getChooseOp() {
+        return chooseOp;
+    }
+
+    public OperatorWrapperGroup getGroup() {
+        return group;
     }
 }

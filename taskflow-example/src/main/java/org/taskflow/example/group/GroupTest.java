@@ -1,12 +1,12 @@
 package org.taskflow.example.group;
 
-import org.junit.Test;
 import org.taskflow.core.DagEngine;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
 import org.taskflow.core.wrapper.OperatorWrapperGroup;
+import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 节点组
@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
  */
 @SuppressWarnings("all")
 public class GroupTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
@@ -24,7 +25,6 @@ public class GroupTest {
     Operator8 operator8 = new Operator8();
     Operator9 operator9 = new Operator9();
     Operator10 operator10 = new Operator10();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     @Test
     public void test() {
@@ -50,7 +50,10 @@ public class GroupTest {
                 .engine(engine)
                 .operator(operator10)
                 ;
-        engine.runAndWait(3000);
+        engine.runAndWait(300_000);
+        if (engine.getEx() != null) {
+            engine.getEx().printStackTrace();
+        }
     }
 
     private OperatorWrapperGroup buildGroup1(DagEngine engine) {

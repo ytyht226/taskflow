@@ -1,10 +1,9 @@
 package org.taskflow.example.param.demo2;
 
 
-
+import org.taskflow.core.operator.IOperator;
 import org.taskflow.config.op.OpConfig;
 import org.taskflow.config.op.param.OpParamConfig;
-import org.taskflow.core.operator.IOperator;
 
 import java.util.List;
 

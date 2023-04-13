@@ -1,6 +1,5 @@
 package org.taskflow.example.param.demo3;
 
-
 import org.taskflow.config.op.param.JsonPathConfig;
 import org.taskflow.config.op.param.OpParamConfig;
 

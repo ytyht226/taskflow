@@ -1,5 +1,6 @@
 package org.taskflow.example.condition;
 
+
 import org.taskflow.core.operator.IOperator;
 
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 public class Operator3 implements IOperator<Integer, Integer> {
     @Override
     public Integer execute(Integer param) throws Exception {
-        TimeUnit.MILLISECONDS.sleep(100);
+        TimeUnit.MILLISECONDS.sleep(10);
         return param * 3;
     }
 }

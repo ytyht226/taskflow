@@ -1,7 +1,14 @@
 package org.taskflow.core.wrapper;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+import org.taskflow.common.constant.DagConstant;
 import org.taskflow.core.DagEngine;
 import org.taskflow.core.operator.IOperator;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * OP节点组，将多个节点抽象成一个组，可以简化对节点依赖的管理，尤其是DAG中节点比较多时
@@ -46,6 +53,10 @@ public class OperatorWrapperGroup extends OperatorWrapper{
      * 原始的结束节点
      */
     private String[] endWrapperIds;
+    /**
+     * 节点组包含的子节点(组)
+     */
+    private Set<String> childrenIds;
 
     public OperatorWrapperGroup() {
 
@@ -63,8 +74,8 @@ public class OperatorWrapperGroup extends OperatorWrapper{
             return this;
         }
         this.setInit(true);
-        groupBeginId = beginWrapperIds == null ? buildGroupId(true, String.valueOf(this.hashCode())) : groupBeginId;
-        groupEndId = endWrapperIds == null ? buildGroupId(false, String.valueOf(this.hashCode())) : groupEndId;
+        groupBeginId = beginWrapperIds == null ? buildGroupBeginEndId(true, String.valueOf(this.hashCode())) : groupBeginId;
+        groupEndId = endWrapperIds == null ? buildGroupBeginEndId(false, String.valueOf(this.hashCode())) : groupEndId;
         beginWrapperIds = beginWrapperIds == null ? new String[]{groupEndId} : beginWrapperIds;
         endWrapperIds = endWrapperIds == null ? new String[]{groupBeginId} : endWrapperIds;
 
@@ -72,6 +83,7 @@ public class OperatorWrapperGroup extends OperatorWrapper{
         OperatorWrapper groupBegin = new OperatorWrapper(groupBeginId, groupBeginOperator);
         groupBegin.id(groupBeginId)
                 .engine(engine)
+                .group(this)
                 .next(beginWrapperIds);
         engine.getWrapperMap().put(groupBeginId, groupBegin);
         this.groupBegin = groupBegin;
@@ -80,12 +92,23 @@ public class OperatorWrapperGroup extends OperatorWrapper{
         OperatorWrapper groupEnd = new OperatorWrapper(groupEndId, groupEndOperator);
         groupEnd.id(groupEndId)
                 .engine(engine)
+                .group(this)
                 .addParamFromWrapperId(endWrapperIds);
         engine.getWrapperMap().put(groupEndId, groupEnd);
         this.groupEnd = groupEnd;
 
+        //设置节点组开始节点
         buildGroupBegin(beginWrapperIds);
+        //设置节点组结束节点
         buildGroupEnd(endWrapperIds);
+        //将节点组保存到引擎
+        String groupId = StringUtils.isNotBlank(this.getId()) ?  this.getId() : groupBeginId;
+        groupId = buildGroupId(groupId);
+        this.setId(groupId);
+        if (engine.getWrapperGroupMap() == null) {
+            engine.setWrapperGroupMap(new HashMap<>());
+        }
+        engine.getWrapperGroupMap().put(groupId, this);
         return this;
     }
 
@@ -96,36 +119,15 @@ public class OperatorWrapperGroup extends OperatorWrapper{
     /**
      * 节点组也是一种特殊的节点，可以添加依赖的参数来源
      */
-    public OperatorWrapper addParamFromWrapperId(String... fromWrapperIds) {
+    public OperatorWrapper addParamFromWrapperId(String ... fromWrapperIds) {
         groupBegin.addParamFromWrapperId(fromWrapperIds);
-        return this;
-    }
-
-    /**
-     * 添加节点组结束节点的后继节点
-     */
-    public OperatorWrapper next(String... wrapperIds) {
-        this.init();
-        engine.getWrapperMap().get(groupEndId).next(wrapperIds);
-        return this;
-    }
-
-    public OperatorWrapperGroup beginWrapperIds(String... wrapperIds) {
-        this.beginWrapperIds = wrapperIds;
-        this.groupBeginId = buildGroupId(true, beginWrapperIds);
-        return this;
-    }
-
-    public OperatorWrapperGroup endWrapperIds(String... wrapperIds) {
-        this.endWrapperIds = wrapperIds;
-        this.groupEndId = buildGroupId(false, endWrapperIds);
         return this;
     }
 
     /**
      * 设置节点组开始节点
      */
-    private OperatorWrapperGroup buildGroupBegin(String... nextWrapperIds) {
+    private OperatorWrapperGroup buildGroupBegin(String ... nextWrapperIds) {
 
         for (String wrapperId : nextWrapperIds) {
             OperatorWrapper<?, ?> wrapper = engine.getWrapperMap().get(wrapperId);
@@ -133,7 +135,7 @@ public class OperatorWrapperGroup extends OperatorWrapper{
                 try {
                     wrapper.getOperator().getClass().getDeclaredMethod("execute", Void.class);
                 } catch (NoSuchMethodException e) {
-                    //execute 接口有入参，且节点没有指定参数来源时，设置参数来源是节点组的开始节点
+                    //execute接口有入参，且节点没有指定参数来源时，设置参数来源是节点组的开始节点
                     wrapper.addParamFromWrapperId(groupBeginId);
                 }
             }
@@ -144,7 +146,7 @@ public class OperatorWrapperGroup extends OperatorWrapper{
     /**
      * 设置节点组结束节点
      */
-    private OperatorWrapperGroup buildGroupEnd(String... dependWrapperIds) {
+    private OperatorWrapperGroup buildGroupEnd(String ... dependWrapperIds) {
 
         for (String wrapperId : dependWrapperIds) {
             engine.getWrapperMap().get(wrapperId).next(groupEnd.getId());
@@ -153,13 +155,50 @@ public class OperatorWrapperGroup extends OperatorWrapper{
     }
 
     /**
+     * 添加节点组结束节点的后续节点
+     */
+    public OperatorWrapper next(String ... wrapperIds) {
+        this.init();
+        engine.getWrapperMap().get(groupEndId).next(wrapperIds);
+        return super.next(wrapperIds);
+    }
+
+    public OperatorWrapperGroup id(String id) {
+        this.setId(id);
+        return this;
+    }
+
+    public OperatorWrapperGroup beginWrapperIds(String ... wrapperIds) {
+        this.beginWrapperIds = wrapperIds;
+        this.groupBeginId = buildGroupBeginEndId(true, beginWrapperIds);
+        return this;
+    }
+
+    public OperatorWrapperGroup endWrapperIds(String ... wrapperIds) {
+        this.endWrapperIds = wrapperIds;
+        this.groupEndId = buildGroupBeginEndId(false, endWrapperIds);
+        return this;
+    }
+
+    public OperatorWrapperGroup children(String ... wrapperIds) {
+        if (wrapperIds == null) {
+            return this;
+        }
+        if (childrenIds == null) {
+            childrenIds = new HashSet<>();
+        }
+        childrenIds.addAll(Sets.newHashSet(wrapperIds));
+        return this;
+    }
+
+    /**
      * 构造开始/结束节点的id
      */
-    private String buildGroupId(boolean isBegin, String... ids) {
+    private String buildGroupBeginEndId(boolean isBegin, String ... ids) {
         if (ids == null) {
             return null;
         }
-        String prefix = isBegin ? "begin" : "end";
+        String prefix = isBegin ? DagConstant.BEGIN_OP_IN_GROUP_PREFIX : DagConstant.END_OP_IN_GROUP_PREFIX;
         StringBuilder builder = new StringBuilder(prefix);
         for (String id : ids) {
             builder.append("_").append(id);
@@ -168,9 +207,16 @@ public class OperatorWrapperGroup extends OperatorWrapper{
     }
 
     /**
+     * 根据节点组开始节点id构造节点组id
+     */
+    private String buildGroupId(String groupBeginId) {
+        return DagConstant.OP_GROUP_PREFIX + groupBeginId;
+    }
+
+    /**
      * 节点组的开始节点OP
      */
-    private static class GroupBeginOperator implements IOperator {
+    public static class GroupBeginOperator implements IOperator {
 
         @Override
         public Object execute(Object param) throws Exception {
@@ -181,7 +227,7 @@ public class OperatorWrapperGroup extends OperatorWrapper{
     /**
      * 节点组的结束节点OP
      */
-    private static class GroupEndOperator implements IOperator {
+    public static class GroupEndOperator implements IOperator {
 
         @Override
         public Object execute(Object param) throws Exception {
@@ -215,5 +261,13 @@ public class OperatorWrapperGroup extends OperatorWrapper{
 
     public OperatorWrapper getGroupBegin() {
         return groupBegin;
+    }
+
+    public Set<String> getChildrenIds() {
+        return childrenIds;
+    }
+
+    public OperatorWrapper getGroupEnd() {
+        return groupEnd;
     }
 }

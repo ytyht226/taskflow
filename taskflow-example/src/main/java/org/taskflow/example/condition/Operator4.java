@@ -1,5 +1,6 @@
 package org.taskflow.example.condition;
 
+
 import org.taskflow.core.operator.IOperator;
 
 import java.util.concurrent.TimeUnit;

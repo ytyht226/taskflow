@@ -1,20 +1,20 @@
 package org.taskflow.example.context;
 
-import org.junit.Test;
 import org.taskflow.core.DagEngine;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 全局上下文
  * Created by ytyht226 on 2022/6/23.
  */
 public class ContextTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
 
     @Test
     public void test() {
@@ -31,5 +31,8 @@ public class ContextTest {
                 .depend("1")
                 ;
         engine.runAndWait(9000);
+        if (engine.getEx() != null) {
+            engine.getEx().printStackTrace();
+        }
     }
 }

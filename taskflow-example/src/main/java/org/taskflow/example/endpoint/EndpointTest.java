@@ -1,11 +1,11 @@
 package org.taskflow.example.endpoint;
 
-import org.junit.Test;
 import org.taskflow.core.DagEngine;
+import org.taskflow.core.thread.pool.CustomThreadPool;
 import org.taskflow.core.wrapper.OperatorWrapper;
+import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 自定义流程中断
@@ -13,13 +13,14 @@ import java.util.concurrent.Executors;
  */
 @SuppressWarnings("all")
 public class EndpointTest {
+    ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
+    Operator4 operator4 = new Operator4();
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         DagEngine engine = new DagEngine(executor);
         OperatorWrapper<Integer, Integer> wrapper1 = new OperatorWrapper<Integer, Integer>()
                 .id("1")
@@ -32,9 +33,10 @@ public class EndpointTest {
                 .engine(engine)
                 .operator(operator2)
                 .next("3")
+                .next("4")
                 .after((w) -> {
-                    //将当前节点设置为结束节点，后续节点不再执行
-                    DagEngine.stopAt(w);
+                    //设置结束节点
+                    w.getEngine().stopAt("3");
                 })
                 ;
         OperatorWrapper<Integer, Integer> wrapper3 = new OperatorWrapper<Integer, Integer>()
@@ -43,6 +45,16 @@ public class EndpointTest {
                 .operator(operator3)
                 ;
 
-        engine.runAndWait(3000);
+        OperatorWrapper<Integer, Integer> wrapper4 = new OperatorWrapper<Integer, Integer>()
+                .id("4")
+                .engine(engine)
+                .operator(operator4)
+                ;
+
+        engine.runAndWait(300_000);
+
+        if (engine.getEx() != null) {
+            engine.getEx().printStackTrace();
+        }
     }
 }

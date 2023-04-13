@@ -1,5 +1,6 @@
 package org.taskflow.example.callback;
 
+
 import org.taskflow.core.operator.IOperator;
 
 import java.util.concurrent.TimeUnit;
@@ -12,7 +13,7 @@ public class Operator1 implements IOperator<Void, Integer> {
     @Override
     public Integer execute(Void param) throws Exception {
         System.out.println("1...");
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(1);
         return 1;
     }
 }

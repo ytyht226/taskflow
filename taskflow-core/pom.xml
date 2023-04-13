@@ -51,11 +51,15 @@
             <version>${slf4j.version}</version>
         </dependency>
         <!-- log4j,slf4j end -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
-        <testSourceDirectory>src/test/java</testSourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

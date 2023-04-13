@@ -56,7 +56,7 @@ public class Operator3 implements IOperator<Integer, Integer> {
 
 ##### 2. 初始化DAG执行引擎
 ```
-ExecutorService executor = Executors.newFixedThreadPool(5);	//业务根据实际情况使用合适的线程池
+ExecutorService executor = Executors.newFixedThreadPoolWrapper(5);	//业务根据实际情况使用合适的线程池
 DagEngine engine = new DagEngine(executor);
 ```
 ##### 3. 定义包装类，指定依赖关系
@@ -88,7 +88,7 @@ public class DemoTest {
     Operator1 operator1 = new Operator1();
     Operator2 operator2 = new Operator2();
     Operator3 operator3 = new Operator3();
-    ExecutorService executor = Executors.newFixedThreadPool(5);
+    ExecutorService executor = Executors.newFixedThreadPoolWrapper(5);
 
     @Test
     public void test() {
@@ -113,22 +113,23 @@ public class DemoTest {
     }
 }
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/simpledemo)
 #### 二、其它使用说明
 
 **以下示例，节点之间的连线如果是实线代表是强依赖关系，如果是虚线代表是弱依赖关系**
 
 ##### 1. 指定线程池
 
-初始化DAG执行引擎时，可以根据不同的业务使用不同的线程池，以达到业务隔离的效果，不显示声明时，使用框架默认的线程池
+初始化DAG执行引擎时，可以根据不同的业务使用不同的线程池，以达到业务隔离的效果
 ```
-ExecutorService executor = Executors.newFixedThreadPool(5);
+ExecutorService executor = CustomThreadPool.newFixedThreadPoolWrapper(5);
 DagEngine engine = new DagEngine(executor);
 ```
 ##### 2. 设置超时时间
 
 启动DAG引擎时，需要设置编排流程执行的超时时间，执行时间达到超时阈值后，未开始执行的节点不再执行，执行中的节点会被中断
 ```
-engine.runAndWait(300, "1", "2");//超时时间单位：毫秒
+engine.runAndWait(300);//超时时间单位：毫秒
 ```
 ##### 3. 节点包装类
 
@@ -148,27 +149,31 @@ addParamFromWrapperId(String ... fromWrapperIds)//当前节点OP的入参是其�
 ```
 ##### 5. OP入参来源
 
-具体使用方法见：[指定参数来源](./ParamSource.md)
+具体使用方法请见：[指定参数来源](ParamSource.md)
 
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/param)
 ##### 6. 全局上下文
 
 DAG引擎执行过程中，每个OP节点的计算结果都会保存到上下文(DagContext)中，使用上下文获取OP结果的方式如下:
 ```
 DagContextHolder.getOperatorResult(id)//id表示的是具体的OP
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/context/Operator2.java)
 ##### 7. DAG引擎回调接口
 ```
 before(IDagCallback callback);//DAG引擎执行前回调
 after(IDagCallback callback);//DAG引擎执行后回调
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/callback)
 ##### 8. OP回调接口
 ```
 beforeOp(ICallable callback);//每个OP执行前的回调
 afterOp(ICallable callback);//每个OP执行后的回调
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/callback)
 ##### 9. 线程模型
 
-![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmp3d.png) ![vfdGnA.png](https://s1.ax1x.com/2022/09/07/vHmJ5F.png)
+![vfdGnA.png](https://s1.ax1x.com/2023/04/13/ppxUCND.png) ![vfdGnA.png](https://s1.ax1x.com/2023/04/13/ppxUrvR.png)
 
 如上图有两种线程模型：阻塞模式、非阻塞模式
 阻塞模式：主线程等待编排流程的执行结束（正常结束、超时、异常等）
@@ -178,6 +183,7 @@ afterOp(ICallable callback);//每个OP执行后的回调
 engine.runAndWait(9000, "1");   //阻塞模式
 engine.runWithCallback(9000, dagCallback, "1"); //非阻塞模式，dagCallback是一个回调接口
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/threadmodel)
 ##### 10. 依赖关系类型
 
 ![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmCjI.png)
@@ -193,6 +199,7 @@ engine.runWithCallback(9000, dagCallback, "1"); //非阻塞模式，dagCallback�
 next(String wrapperId, boolean selfIsMust);//当前节点的后续节点，selfIsMust：true（强依赖），false（弱依赖）
 depend(String wrapperId, boolean isMust); //当前节点依赖的其它节点，isMust：true（强依赖），false（弱依赖）
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/dependencytype)
 ##### 11. 准入条件判断
 
 ![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmFDP.png)
@@ -226,6 +233,7 @@ private static class Wrapper4Condition implements ICondition {
     }
 }
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/condition)
 ##### 12. 分支选择
 
 ![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHmVUS.png)
@@ -273,6 +281,7 @@ public void test() {
     engine.runAndWait(3000, "1");
 }
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/choose/branch)
 ##### 13. 节点执行状态监听器
 
 节点运行的结果有如下三种状态：
@@ -326,6 +335,7 @@ private OperatorListener getListener() {
     };
 }
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/listener)
 ##### 14. 节点组
 
 ![vfdGnA.png](https://s1.ax1x.com/2022/09/06/vHm1bV.png)
@@ -419,6 +429,7 @@ private OperatorWrapperGroup buildGroup2(DagEngine engine) {
             ;
 }
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/group)
 ##### 15. 自定义中断
 
 ![vfdGnA.png](https://s1.ax1x.com/2022/08/29/vfBDje.png)
@@ -449,5 +460,24 @@ OperatorWrapper<Integer, Integer> wrapper3 = new OperatorWrapper<Integer, Intege
         .operator(operator3)
         ;
 ```
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/endpoint)
+##### 16. 节点选择
+
+![vfdGnA.png](https://s1.ax1x.com/2023/04/13/ppvvPKg.png)
+
+根据节点的计算结果动态的选择要执行的子节点，如上图是节点选择的例子，节点1是节点选择节点，在后续节点(2、3、4)中选择要执行的节点，最终执行路径可能是1->3->5->6，节点5是合并节点，后续的流程是共享的，不管节点1选择的后续节点是哪个，节点5之后的节点都会执行
+>分支选择与节点选择的区别：
+* 分支选择：选择要执行的子节点之后，后续的DAG流程中不存在合并节点
+* 节点选择：选择要执行的子节点之后，后续的DAG流程中存在合并节点，可以对可复用的流程进行共享（如上图中的 5->6）
+
+详情请查看 [节点选择](NodeChoose.md)
+##### 17. 批处理任务
+>除了任务编排的使用场景之外，还可以对一批任务并行、串行操作，有如下几种任务类型：
+* 将一批任务并行执行
+* 将一批任务分批次执行（每个批次包含多个任务，并行执行）
+* 将一批任务分批次执行（每个批次是一个任务，每个任务可以传入多个参数；比如调用的批量接口）
+
+代码示例请参考：[代码示例](../taskflow-example/src/main/java/org/taskflow/example/task/TaskTest.java)
+
 #### 三、详细代码示例
-见 [task-example](./taskflow-example)
+见 [task-example](../taskflow-example)

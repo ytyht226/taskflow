@@ -1,6 +1,5 @@
 package org.taskflow.example.param.entity;
 
-
 import org.taskflow.config.op.OpConfig;
 import org.taskflow.config.op.param.JsonPathConfig;
 import org.taskflow.config.op.param.OpParamConfig;

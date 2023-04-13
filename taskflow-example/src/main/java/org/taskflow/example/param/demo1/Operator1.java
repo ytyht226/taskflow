@@ -1,8 +1,8 @@
 package org.taskflow.example.param.demo1;
 
 
-import org.taskflow.config.op.OpConfig;
 import org.taskflow.core.operator.IOperator;
+import org.taskflow.config.op.OpConfig;
 
 /**
  * Created by ytyht226 on 2022/6/23.
