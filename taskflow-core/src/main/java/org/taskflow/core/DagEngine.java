@@ -20,10 +20,7 @@ import org.taskflow.core.wrapper.OperatorWrapper;
 import org.taskflow.core.wrapper.OperatorWrapperGroup;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * DAG执行引擎
@@ -55,7 +52,7 @@ public class DagEngine {
     /**
      * 工作线程的快照
      */
-    private ConcurrentHashMap.KeySetView<Thread, Boolean> runningThreadSet = ConcurrentHashMap.newKeySet();
+    private ConcurrentHashMap<Thread, OperatorWrapper<?, ?>> runningThreadMap = new ConcurrentHashMap();
     /**
      * DAG编排流程的回调接口，如果提供了回调接口，编排流程的执行是异步的，流程执行完后回调该接口
      */
@@ -237,8 +234,13 @@ public class DagEngine {
      * 主线程阻塞，唤醒后会打断还在执行中的节点
      */
     private void awaitAndInterruptRunningThread() {
+        boolean isTimeout = false;
         try {
-            syncLatch.await(timeout, TimeUnit.MILLISECONDS);
+            boolean awaitResult = syncLatch.await(timeout, TimeUnit.MILLISECONDS);
+            if (!awaitResult) {
+                state = DagState.ERROR;
+                isTimeout = true;
+            }
         } catch (InterruptedException e) {
             state = DagState.ERROR;
             log.error("dagEngine is interrupted", e);
@@ -247,9 +249,17 @@ public class DagEngine {
         if (state == DagState.RUNNING) {
             state = DagState.FINISH;
         }
-        if (!runningThreadSet.isEmpty()) {
-            for (Thread thread : runningThreadSet) {
+        if (!runningThreadMap.isEmpty()) {
+            for (Map.Entry<Thread, OperatorWrapper<?, ?>> entry : runningThreadMap.entrySet()) {
+                Thread thread = entry.getKey();
                 thread.interrupt();
+                // 封装超时异常
+                if (isTimeout && this.ex == null) {
+                    state = DagState.ERROR;
+                    OperatorWrapper<?, ?> operatorWrapper = entry.getValue();
+                    String message = operatorWrapper.getOperator().getClass().getName();
+                    this.ex = new TimeoutException(message);
+                }
             }
         }
     }
@@ -385,10 +395,10 @@ public class DagEngine {
      */
     private Runnable getRunningTask(OperatorWrapper wrapper) {
         return () -> {
+            Thread thread = Thread.currentThread();
             try {
-                wrapper.setThread(Thread.currentThread());
-                runningThreadSet.add(Thread.currentThread());
-
+                wrapper.setThread(thread);
+                runningThreadMap.put(thread, wrapper);
                 if (beforeOp != null) {
                     beforeOp.call(wrapper);
                 }
@@ -432,7 +442,7 @@ public class DagEngine {
                 //节点执行完，释放线程
                 wrapper.setThread(null);
                 //从工作线程快照中移除该节点的线程
-                runningThreadSet.remove(Thread.currentThread());
+                runningThreadMap.remove(thread);
                 //如果是结束节点，则将信号量减一
                 boolean isEndOp = false;
                 if (endWrapperSet.contains(wrapper)) {
@@ -783,8 +793,8 @@ public class DagEngine {
         return wrapperMap;
     }
 
-    public ConcurrentHashMap.KeySetView<Thread, Boolean> getRunningThreadSet() {
-        return runningThreadSet;
+    public ConcurrentHashMap<Thread, OperatorWrapper<?, ?>> getRunningThreadMap() {
+        return runningThreadMap;
     }
 
     public Throwable getEx() {

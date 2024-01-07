@@ -1,8 +1,8 @@
 package org.taskflow.config.op;
 
-import javafx.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.taskflow.common.constant.DagConstant;
+import org.taskflow.config.op.model.JsonPathModel;
 
 /**
  * 参数表达式解析工具
@@ -28,7 +28,8 @@ public class ParamExpressUtil {
      * @return Pair<String, String> key: 任务id, value: jsonpath表达式
      * @see <a href="https://github.com/json-path/JsonPath">JsonPath</a>
      */
-    public static Pair<String, String> parseJsonPath(String path) {
+    public static JsonPathModel parseJsonPath(String path) {
+        JsonPathModel jsonPathModel = new JsonPathModel();
         String opId;
         String realPath;
         if (path.startsWith("#")) {
@@ -48,6 +49,8 @@ public class ParamExpressUtil {
         } else {
             throw new RuntimeException("jsonPathConfig path error");
         }
-        return new Pair<>(opId, realPath);
+        jsonPathModel.setOpId(opId);
+        jsonPathModel.setRealPath(realPath);
+        return jsonPathModel;
     }
 }

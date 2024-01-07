@@ -1,12 +1,12 @@
 package org.taskflow.core.operator;
 
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.taskflow.common.util.gson.GsonUtil;
 import org.taskflow.config.op.OpConfig;
 import org.taskflow.config.op.ParamExpressUtil;
 import org.taskflow.config.op.ParamParserHelper;
+import org.taskflow.config.op.model.JsonPathModel;
 import org.taskflow.config.op.param.JsonPathConfig;
 import org.taskflow.config.op.param.OpParamConfig;
 import org.taskflow.config.op.param.ParsedParam;
@@ -97,9 +97,9 @@ public class DefaultParamParseOperator implements IParamParseOperator<OperatorWr
         //解析jsonpath异常时，如果 value 不为空则直接返回，否则抛异常
         Object value;
         try {
-            Pair<String, String> pair = ParamExpressUtil.parseJsonPath(path);
-            String opId = pair.getKey();
-            String realPath = pair.getValue();
+            JsonPathModel jsonPathModel = ParamExpressUtil.parseJsonPath(path);
+            String opId = jsonPathModel.getOpId();
+            String realPath = jsonPathModel.getRealPath();
             OperatorResult operatorResult = DagContextHolder.getOperatorResult(opId);
             Object result = operatorResult.getResult();
             value = ParamParserHelper.parse(GsonUtil.toJson(result), realPath, typeClass);

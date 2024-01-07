@@ -3,11 +3,11 @@ package org.taskflow.core.operator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import javafx.util.Pair;
 import org.taskflow.common.util.ClassUtil;
 import org.taskflow.common.util.gson.GsonUtil;
 import org.taskflow.config.op.ParamExpressUtil;
 import org.taskflow.config.op.ParamParserHelper;
+import org.taskflow.config.op.model.JsonPathModel;
 import org.taskflow.core.DagContextHolder;
 
 import java.util.Map;
@@ -62,9 +62,9 @@ public class RecurseParamParseOperator extends DefaultParamParseOperator {
      * 根据path从引擎上下文中解析具体内容
      */
     private Object parsePathValue(String path) {
-        Pair<String, String> pair = ParamExpressUtil.parseJsonPath(path);
-        String opId = pair.getKey();
-        String realPath = pair.getValue();
+        JsonPathModel jsonPathModel = ParamExpressUtil.parseJsonPath(path);
+        String opId = jsonPathModel.getOpId();
+        String realPath = jsonPathModel.getRealPath();
         OperatorResult<?> operatorResult = DagContextHolder.getOperatorResult(opId);
         Object result = operatorResult.getResult();
         return ParamParserHelper.parse(GsonUtil.toJson(result), realPath);
